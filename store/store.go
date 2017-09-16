@@ -23,16 +23,14 @@ type Storage interface {
 
 type storage struct {
 	// TODO: Rewrite this piece of... map...
-	data    map[string]*Object
-	hashSet map[uint64]struct{}
-	muRW    sync.RWMutex
+	data map[string]*Object
+	muRW sync.RWMutex
 }
 
 func NewStorage() Storage {
 	return Storage(&storage{
-		data:    make(map[string]*Object),
-		hashSet: make(map[uint64]struct{}),
-		muRW:    sync.RWMutex{},
+		data: make(map[string]*Object),
+		muRW: sync.RWMutex{},
 	})
 }
 
