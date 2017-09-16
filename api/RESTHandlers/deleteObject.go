@@ -14,13 +14,13 @@ func (h *Handler) DeleteObject(w http.ResponseWriter, r *http.Request) {
 
 	log := logger.Log.WithField("requestID", middleware.GetReqID(r.Context()))
 
-	err := h.Store.Delete(id)
+	err := h.Store.Delete(r.Context(), id)
 	if err != nil {
 		if err == store.KeyNotFound {
 			log.WithField("id", id).Debug(err)
 			w.WriteHeader(http.StatusNotFound)
 		} else {
-			log.Warn(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return

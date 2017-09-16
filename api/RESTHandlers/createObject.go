@@ -46,13 +46,17 @@ func (h *Handler) CreateObject(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Creation process
-	key, err := h.Store.Create(value, middlewares.GetMediaType(r))
+	key, err := h.Store.Create(r.Context(), value, middlewares.GetMediaType(r))
 	if err != nil {
-		if err == store.KeyAlreadyExist {
+		switch err {
+		case store.KeyAlreadyExist:
 			log.Debug(err)
 			w.WriteHeader(http.StatusConflict)
-		} else {
+		case store.ValueSizeIsExceeded:
 			log.Warn(err)
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+		default:
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return

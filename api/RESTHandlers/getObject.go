@@ -14,13 +14,14 @@ func (h *Handler) GetObject(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	obj, err := h.Store.Get(id)
+	obj, err := h.Store.Get(r.Context(), id)
 	if err != nil {
-		if err == store.KeyNotFound {
+		switch err {
+		case store.KeyNotFound:
 			log.WithField("objectID", id).Debug(err)
 			w.WriteHeader(http.StatusNotFound)
-		} else {
-			log.Warn(err)
+		default:
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return

@@ -12,7 +12,7 @@ import (
 
 const MediaTypeKey = "MediaTypeKey"
 
-func ContentTypeChecker(next http.Handler) http.Handler {
+func ContentType(next http.Handler) http.Handler {
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
