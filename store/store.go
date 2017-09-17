@@ -5,14 +5,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"sync"
-	"time"
 )
 
-const (
-	// MaxValueSize stores maximum allowed size for value
-	MaxValueSize            = 1 << 20
-	defaultStoreLockTimeout = 5
-)
+// MaxValueSize stores maximum allowed size for value
+const MaxValueSize = 1 << 20
 
 var empty struct{}
 
@@ -47,11 +43,11 @@ type Object struct {
 // If key does not exist KeyNotFound error sill be returned
 // Function handles ctx.Done and could be canceled before finish. In this case ReceivedStop error will be returned
 func (s *storage) Get(ctx context.Context, key string) (*Object, error) {
-	unlock, err := s.rlock(ctx)
+	err := s.lock(ctx, s.muRW.RLock)
 	if err != nil {
 		return nil, err
 	}
-	defer unlock()
+	defer s.muRW.RUnlock()
 
 	object, ok := s.data[key]
 	if !ok {
@@ -82,19 +78,19 @@ func (s *storage) Create(ctx context.Context, value []byte, mediaType string) (s
 
 	hashSum := hex.EncodeToString(h.Sum(nil))
 
-	unlock, err := s.lock(ctx)
+	err = s.lock(ctx, s.muRW.Lock)
 	if err != nil {
 		return "", err
 	}
 
 	_, ok := s.data[hashSum]
 	if ok {
-		unlock()
+		s.muRW.Unlock()
 		return "", KeyAlreadyExist
 	}
 
 	s.data[hashSum] = &Object{Key: hashSum, MediaType: mediaType, Value: value}
-	unlock()
+	s.muRW.Unlock()
 	return hashSum, nil
 }
 
@@ -102,11 +98,11 @@ func (s *storage) Create(ctx context.Context, value []byte, mediaType string) (s
 // If key does not exist KeyNotFound error sill be returned
 // Function handles ctx.Done and could be canceled before finish. In this case ReceivedStop error will be returned
 func (s *storage) Delete(ctx context.Context, key string) error {
-	unlock, err := s.lock(ctx)
+	err := s.lock(ctx, s.muRW.Lock)
 	if err != nil {
 		return err
 	}
-	unlock()
+	defer s.muRW.Unlock()
 
 	// TODO: Resolve "read before write"
 	_, ok := s.data[key]
@@ -117,42 +113,18 @@ func (s *storage) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
-func (s *storage) lock(ctx context.Context) (func(), error) {
+func (s *storage) lock(ctx context.Context, locker func()) error {
 	// Extra code to handle deadlocks and ctx.Done
 	locked := make(chan struct{})
 	go func() {
-		s.muRW.Lock()
+		locker()
 		locked <- empty
 	}()
 
-	ticker := time.NewTicker(time.Second * defaultStoreLockTimeout)
-	defer ticker.Stop()
 	select {
 	case <-locked:
-	case <-ticker.C:
-		return s.muRW.Unlock, StorageIsLocked
 	case <-ctx.Done():
-		return s.muRW.Unlock, ReceivedStop
+		return ReceivedStop
 	}
-	return s.muRW.Unlock, nil
-}
-
-func (s *storage) rlock(ctx context.Context) (func(), error) {
-	// Extra code to handle deadlocks and ctx.Done
-	locked := make(chan struct{})
-	go func() {
-		s.muRW.RLock()
-		locked <- empty
-	}()
-
-	ticker := time.NewTicker(time.Second * defaultStoreLockTimeout)
-	defer ticker.Stop()
-	select {
-	case <-locked:
-	case <-ticker.C:
-		return s.muRW.RUnlock, StorageIsLocked
-	case <-ctx.Done():
-		return s.muRW.RUnlock, ReceivedStop
-	}
-	return s.muRW.RUnlock, nil
+	return nil
 }

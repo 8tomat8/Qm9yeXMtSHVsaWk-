@@ -32,7 +32,6 @@ func TestHandler_DeleteObjectMockedStore(t *testing.T) {
 		responseBody []byte
 	}{
 		{"KeyNotFound", store.KeyNotFound, http.StatusNotFound, nil},
-		{"StorageIsLocked", store.StorageIsLocked, http.StatusInternalServerError, nil},
 		{"ReceivedStop", store.ReceivedStop, http.StatusInternalServerError, nil},
 		{"Success", nil, http.StatusNoContent, nil},
 	}

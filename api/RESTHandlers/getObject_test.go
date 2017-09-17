@@ -33,7 +33,6 @@ func TestHandler_GetObjectMockedStore(t *testing.T) {
 		responseBody []byte
 	}{
 		{"KeyNotFound", nil, store.KeyNotFound, http.StatusNotFound, []byte{}},
-		{"StorageIsLocked", nil, store.StorageIsLocked, http.StatusInternalServerError, []byte{}},
 		{"ReceivedStop", nil, store.ReceivedStop, http.StatusInternalServerError, []byte{}},
 		{"Success", &store.Object{"key", "MediaType", []byte("foo")}, nil, http.StatusOK, []byte("foo")},
 	}
