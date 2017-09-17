@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/hex"
 	"sync"
+
+	"github.com/spaolacci/murmur3"
 )
 
 // MaxValueSize stores maximum allowed size for value
@@ -33,6 +34,7 @@ func NewStorage() Storage {
 	})
 }
 
+// Object represents structure of each object in store
 type Object struct {
 	Key       string
 	MediaType string
@@ -66,8 +68,7 @@ func (s *storage) Create(ctx context.Context, value []byte, mediaType string) (s
 	}
 
 	// Hash is prone to collision. Fast but not optimal solution
-	// Also md5 is quite complex algorithm, but due to task requirements could not be changed to some simpler
-	h := md5.New()
+	h := murmur3.New128()
 
 	n, err := h.Write(value)
 	if err != nil {
@@ -113,6 +114,7 @@ func (s *storage) Delete(ctx context.Context, key string) error {
 	return nil
 }
 
+// lock is a helper function that allows to handle lock
 func (s *storage) lock(ctx context.Context, locker func()) error {
 	// Extra code to handle deadlocks and ctx.Done
 	locked := make(chan struct{})
