@@ -10,12 +10,15 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
-const MediaTypeKey = "MediaTypeKey"
+const (
+	MediaTypeKey   = "MediaTypeKey"
+	ContentTypeKey = "Content-Type"
+)
 
 func ContentType(next http.Handler) http.Handler {
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		mediaType, _, err := mime.ParseMediaType(r.Header.Get(ContentTypeKey))
 
 		if err != nil || len(mediaType) == 0 {
 			log := logger.Log.WithField("requestID", middleware.GetReqID(r.Context()))

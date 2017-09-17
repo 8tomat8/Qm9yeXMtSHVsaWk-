@@ -17,7 +17,7 @@ func (h *Handler) DeleteObject(w http.ResponseWriter, r *http.Request) {
 	err := h.Store.Delete(r.Context(), id)
 	if err != nil {
 		if err == store.KeyNotFound {
-			log.WithField("id", id).Debug(err)
+			log.WithField("objectID", id).Debug(err)
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			log.Error(err)

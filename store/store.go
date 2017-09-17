@@ -9,16 +9,18 @@ import (
 )
 
 const (
+	// MaxValueSize stores maximum allowed size for value
 	MaxValueSize            = 1 << 20
 	defaultStoreLockTimeout = 5
 )
 
 var empty struct{}
 
+// Storage describes storage interface
 type Storage interface {
-	Get(context.Context, string) (*Object, error)
-	Create(context.Context, []byte, string) (string, error)
-	Delete(context.Context, string) error
+	Get(ctx context.Context, key string) (*Object, error)
+	Create(ctx context.Context, value []byte, mediaType string) (string, error)
+	Delete(ctx context.Context, key string) error
 }
 
 type storage struct {
@@ -27,6 +29,7 @@ type storage struct {
 	muRW sync.RWMutex
 }
 
+// NewStorage will initialize new empty storage and return it
 func NewStorage() Storage {
 	return Storage(&storage{
 		data: make(map[string]*Object),
@@ -40,22 +43,27 @@ type Object struct {
 	Value     []byte
 }
 
+// Get will return value from storage by its key
+// If key does not exist KeyNotFound error sill be returned
+// Function handles ctx.Done and could be canceled before finish. In this case ReceivedStop error will be returned
 func (s *storage) Get(ctx context.Context, key string) (*Object, error) {
 	unlock, err := s.rlock(ctx)
 	if err != nil {
 		return nil, err
 	}
+	defer unlock()
 
-	value, ok := s.data[key]
+	object, ok := s.data[key]
 	if !ok {
-		unlock()
 		return nil, KeyNotFound
 	}
 
-	unlock()
-	return value, nil
+	return object, nil
 }
 
+// Create function implements logic to save data in storage.
+// If value is not unique it will return KeyAlreadyExist error
+// Function handles ctx.Done and could be canceled before finish. In this case ReceivedStop error will be returned
 func (s *storage) Create(ctx context.Context, value []byte, mediaType string) (string, error) {
 	if len(value) > MaxValueSize {
 		return "", ValueSizeIsExceeded
@@ -90,11 +98,15 @@ func (s *storage) Create(ctx context.Context, value []byte, mediaType string) (s
 	return hashSum, nil
 }
 
+// Delete function implements logic to remove object from storage by its key.
+// If key does not exist KeyNotFound error sill be returned
+// Function handles ctx.Done and could be canceled before finish. In this case ReceivedStop error will be returned
 func (s *storage) Delete(ctx context.Context, key string) error {
 	unlock, err := s.lock(ctx)
 	if err != nil {
 		return err
 	}
+	unlock()
 
 	// TODO: Resolve "read before write"
 	_, ok := s.data[key]
@@ -102,12 +114,11 @@ func (s *storage) Delete(ctx context.Context, key string) error {
 		return KeyNotFound
 	}
 	delete(s.data, key)
-	unlock()
 	return nil
 }
 
 func (s *storage) lock(ctx context.Context) (func(), error) {
-	// Extra code to handle deadlock
+	// Extra code to handle deadlocks and ctx.Done
 	locked := make(chan struct{})
 	go func() {
 		s.muRW.Lock()
@@ -127,7 +138,7 @@ func (s *storage) lock(ctx context.Context) (func(), error) {
 }
 
 func (s *storage) rlock(ctx context.Context) (func(), error) {
-	// Extra code to handle deadlock
+	// Extra code to handle deadlocks and ctx.Done
 	locked := make(chan struct{})
 	go func() {
 		s.muRW.RLock()

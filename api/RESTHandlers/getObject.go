@@ -12,7 +12,7 @@ import (
 func (h *Handler) GetObject(w http.ResponseWriter, r *http.Request) {
 	log := logger.Log.WithField("requestID", middleware.GetReqID(r.Context()))
 
-	id := chi.URLParam(r, "id")
+	id := chi.URLParamFromCtx(r.Context(), "id")
 
 	obj, err := h.Store.Get(r.Context(), id)
 	if err != nil {

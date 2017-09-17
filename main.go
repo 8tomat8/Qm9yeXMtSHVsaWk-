@@ -2,18 +2,15 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net/http"
-
-	"flag"
-
-	"strconv"
-
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
-	"github.com/8tomat8/Qm9yeXMtSHVsaWk-/api"
+	"github.com/8tomat8/Qm9yeXMtSHVsaWk-/api/router"
 	"github.com/8tomat8/Qm9yeXMtSHVsaWk-/logger"
 	"github.com/8tomat8/Qm9yeXMtSHVsaWk-/store"
 	"github.com/go-chi/chi"
@@ -26,12 +23,14 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	ctx, cancel := context.WithCancel(context.Background())
 	storage := store.NewStorage()
 
+	addr := fmt.Sprintf("%s:%s", *host, strconv.Itoa(int(*port)))
 	srv := http.Server{
-		Addr:    fmt.Sprintf("%s:%s", *host, strconv.Itoa(int(*port))),
-		Handler: chi.ServerBaseContext(ctx, api.NewRouter(storage)),
+		Addr:    addr,
+		Handler: chi.ServerBaseContext(ctx, router.NewRouter(storage)),
 	}
 
 	done := make(chan struct{})
@@ -53,6 +52,7 @@ func main() {
 		close(done)
 	}()
 
+	logger.Log.Info(fmt.Sprintf("Starting listener on %s", addr))
 	err := srv.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		close(done)

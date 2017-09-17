@@ -13,11 +13,13 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+// CreateObject handles requests for creating new objects
 func (h *Handler) CreateObject(w http.ResponseWriter, r *http.Request) {
 	log := logger.Log.WithField("requestID", middleware.GetReqID(r.Context()))
 
 	contentLen, err := strconv.Atoi(r.Header.Get("Content-Length"))
 	if err != nil {
+		// Some unreal case, but let it be =)
 		log.Debug("Content-Length could not be parsed")
 		w.WriteHeader(http.StatusBadRequest)
 		return

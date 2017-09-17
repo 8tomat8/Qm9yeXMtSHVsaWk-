@@ -6,12 +6,10 @@ import (
 	"errors"
 
 	"github.com/8tomat8/Qm9yeXMtSHVsaWk-/store"
-	"github.com/go-chi/valve"
 )
 
 type Handler struct {
 	Store store.Storage
-	Valve *valve.Valve
 }
 
 func (Handler) SendResponse(w http.ResponseWriter, payload []byte) error {
