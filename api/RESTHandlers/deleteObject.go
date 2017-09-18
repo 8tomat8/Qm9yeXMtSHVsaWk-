@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+// DeleteObject handles requests for objects deletion
 func (h *Handler) DeleteObject(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 

@@ -74,7 +74,7 @@ func (s *storage) Create(ctx context.Context, value []byte, mediaType string) (s
 	if err != nil {
 		return "", err
 	} else if n != len(value) {
-		return "", StoreErr("couldn't count hash for value")
+		return "", Err("couldn't count hash for value")
 	}
 
 	hashSum := hex.EncodeToString(h.Sum(nil))

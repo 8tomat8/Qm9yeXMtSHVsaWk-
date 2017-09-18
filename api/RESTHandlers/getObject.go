@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+// GetObject handles requests for getting objects
 func (h *Handler) GetObject(w http.ResponseWriter, r *http.Request) {
 	log := logger.Log.WithField("requestID", middleware.GetReqID(r.Context()))
 

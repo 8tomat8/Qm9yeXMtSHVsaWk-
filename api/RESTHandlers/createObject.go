@@ -41,9 +41,9 @@ func (h *Handler) CreateObject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer func() {
-		err := r.Body.Close()
-		if err != nil {
-			log.Warn(err)
+		er := r.Body.Close()
+		if er != nil {
+			log.Warn(er)
 		}
 	}()
 

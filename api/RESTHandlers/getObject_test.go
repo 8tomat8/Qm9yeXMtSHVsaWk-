@@ -21,7 +21,7 @@ func TestHandler_GetObjectMockedStore(t *testing.T) {
 	t.Parallel()
 	storage := &storeTesting.StorageMock{}
 
-	r := ApiHandler(storage)
+	r := APIHandler(storage)
 	srv := httptest.NewServer(r)
 	defer srv.Close()
 
@@ -82,7 +82,7 @@ func TestHandler_GetObjectRealStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r := ApiHandler(storage)
+	r := APIHandler(storage)
 	srv := httptest.NewServer(r)
 	defer srv.Close()
 

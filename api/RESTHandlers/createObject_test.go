@@ -23,7 +23,7 @@ func TestHandler_CreateObjectMockedStore(t *testing.T) {
 	t.Parallel()
 	storage := &storeTesting.StorageMock{}
 
-	r := ApiHandler(storage)
+	r := APIHandler(storage)
 	srv := httptest.NewServer(r)
 	defer srv.Close()
 
@@ -78,7 +78,7 @@ func TestHandler_CreateObjectRealStore(t *testing.T) {
 	expectedMediaType := "plan/text"
 
 	storage := store.NewStorage()
-	r := ApiHandler(storage)
+	r := APIHandler(storage)
 	srv := httptest.NewServer(r)
 	defer srv.Close()
 
@@ -116,7 +116,7 @@ func TestHandler_CreateObjectNoContentType(t *testing.T) {
 	t.Parallel()
 	storage := &storeTesting.StorageMock{}
 
-	r := ApiHandler(storage)
+	r := APIHandler(storage)
 	srv := httptest.NewServer(r)
 	defer srv.Close()
 

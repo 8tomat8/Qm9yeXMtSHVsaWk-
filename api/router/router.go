@@ -18,7 +18,7 @@ func NewRouter(storage store.Storage) chi.Router {
 	r.Use(middleware.Timeout(defaultTimeout * time.Second))
 	r.Use(middleware.RequestID)
 
-	r.Mount("/api", RESTHandlers.ApiHandler(storage))
+	r.Mount("/api", RESTHandlers.APIHandler(storage))
 
 	return r
 }

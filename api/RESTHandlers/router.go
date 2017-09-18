@@ -7,7 +7,7 @@ import (
 )
 
 // apiHandler will handle all requests for /api path
-func ApiHandler(storage store.Storage) chi.Router {
+func APIHandler(storage store.Storage) chi.Router {
 	r := chi.NewRouter()
 	r.Mount("/objects", objectsHandler(storage))
 	return r

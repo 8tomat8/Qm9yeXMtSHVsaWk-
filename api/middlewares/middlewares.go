@@ -10,9 +10,11 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+type key string
+
 const (
-	MediaTypeKey   = "MediaTypeKey"
-	ContentTypeKey = "Content-Type"
+	MediaType      key = "MediaTypeKey"
+	ContentTypeKey     = "Content-Type"
 )
 
 func ContentType(next http.Handler) http.Handler {
@@ -28,14 +30,14 @@ func ContentType(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, MediaTypeKey, mediaType)
+		ctx = context.WithValue(ctx, MediaType, mediaType)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(fn)
 }
 
 func GetMediaType(r *http.Request) string {
-	res, ok := r.Context().Value(MediaTypeKey).(string)
+	res, ok := r.Context().Value(MediaType).(string)
 	if !ok {
 		return ""
 	}
